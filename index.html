@@ -32,12 +32,12 @@
     position:absolute; inset:0; display:grid; place-items:center; padding:16px
   }
   .welcome .overlay .overlay-card{
-    background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+    background: rgba(255,255,255,.9); /* 90% opacity */
+    border:1px solid var(--border); border-radius:var(--radius);
     box-shadow:var(--shadow); width:min(92%, 760px); padding:22px; text-align:center
   }
   .welcome .overlay .overlay-card h1{margin:0 0 8px; font-size:clamp(22px,4.5vw,36px)}
   .welcome .overlay .overlay-card .lead{margin:0 0 16px; font-size:clamp(14px,3.8vw,18px)}
-  /* hide old content block if present */
   .welcome > .content{display:none}
 
   /* Buttons */
@@ -53,8 +53,12 @@
   .q-title{font-size:22px;font-weight:800;margin:4px 0 12px}
   .q-sub{color:var(--muted);margin:0 0 12px;font-size:14px}
 
-  /* Uniform cards (no icons) */
-  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  /* Uniform card layout for all steps */
+  .grid{display:grid; gap:12px; grid-template-columns:1fr;}
+  @media (min-width:560px){
+    .grid{ grid-template-columns:repeat(2, 1fr); }
+  }
+
   .opt{
     display:flex;justify-content:center;align-items:center;text-align:center;
     padding:14px;border:1px solid var(--border);border-radius:12px;background:#fff;
@@ -73,7 +77,7 @@
   .nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
   .hidden{display:none !important}
 
-  /* Success (image on top like welcome) */
+  /* Success */
   .success-card .hero-img{width:100%;height:auto;display:block}
   .success-card .content{padding:18px}
   .phone-btn{margin-top:10px}
@@ -237,7 +241,7 @@ function scrollToEl(el){
 
 function validatePhoneOptional(value){
   if (!value) return true; // optional
-  // Accept +389 7x xxx xxx or 07x xxx xxx
+  // Accept +389 7x xxx xxx or 07x xxx xxx (common MK mobiles, flexible spaces)
   const re = /^(?:\+389\s?7\d\s?\d{3}\s?\d{3}|0?7\d\s?\d{3}\s?\d{3})$/;
   return re.test(value.trim());
 }
@@ -320,6 +324,7 @@ async function submitForm(){
 
     if(!GAS_URL || GAS_URL.startsWith('REPLACE_')) throw new Error('Missing Google Apps Script URL');
 
+    // text/plain: simpler, avoids CORS preflight
     const res = await fetch(GAS_URL, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
