@@ -22,12 +22,23 @@
 
   .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
 
-  /* Welcome card (image above text) */
-  .welcome{overflow:hidden}
-  .welcome .hero-img{width:100%;height:auto;display:block}
-  .welcome .content{padding:18px}
-  h1{font-size:clamp(22px,4.5vw,36px);margin:0 0 8px}
-  p.lead{font-size:clamp(14px,3.8vw,18px);opacity:.95;margin:0 0 16px}
+  /* Welcome card (image with centered white overlay card) */
+  .welcome{position:relative; overflow:hidden}
+  .welcome .hero-img{
+    width:100%; height:clamp(300px, 55vw, 560px);
+    object-fit:cover; display:block
+  }
+  .welcome .overlay{
+    position:absolute; inset:0; display:grid; place-items:center; padding:16px
+  }
+  .welcome .overlay .overlay-card{
+    background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); width:min(92%, 760px); padding:22px; text-align:center
+  }
+  .welcome .overlay .overlay-card h1{margin:0 0 8px; font-size:clamp(22px,4.5vw,36px)}
+  .welcome .overlay .overlay-card .lead{margin:0 0 16px; font-size:clamp(14px,3.8vw,18px)}
+  .welcome > .content{display:none}
+
   .btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer;transition:transform .05s ease;box-shadow:0 6px 16px rgba(226,35,26,.3);text-decoration:none}
   .btn:active{transform:translateY(1px)}
   .btn[disabled]{opacity:.6;cursor:default}
@@ -40,8 +51,6 @@
   .q-title{font-size:22px;font-weight:800;margin:4px 0 12px}
   .q-sub{color:var(--muted);margin:0 0 12px;font-size:14px}
 
-  /* Uniform cards (no icons) */
-  /* auto-fit makes all option cards equal-width columns across steps */
   .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
   .opt{
     display:flex;justify-content:center;align-items:center;text-align:center;
@@ -61,7 +70,6 @@
   .nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
   .hidden{display:none !important}
 
-  /* Success (image on top like welcome) */
   .success-card .hero-img{width:100%;height:auto;display:block}
   .success-card .content{padding:18px}
   .phone-btn{margin-top:10px}
@@ -83,10 +91,12 @@
       <!-- Welcome -->
       <section id="welcome" class="card welcome">
         <img class="hero-img" src="https://i.postimg.cc/8CPTy5fc/Vizual-1.png" alt="Samsung топлотна пумпа - дом">
-        <div class="content">
-          <h1>Пронајди го нај паметното греење за твојот дом за 30 секунди.</h1>
-          <p class="lead">Одговори на 8 кратки прашања и добиј бесплатна проценка колку би чинела идеалната Samsung топлотна пумпа за твојот дом.</p>
-          <button class="btn" id="startBtn">Започни →</button>
+        <div class="overlay">
+          <div class="overlay-card">
+            <h1>Пронајди го нај паметното греење за твојот дом за 30 секунди.</h1>
+            <p class="lead">Одговори на 8 кратки прашања и добиј бесплатна проценка колку би чинела идеалната Samsung топлотна пумпа за твојот дом.</p>
+            <button class="btn" id="startBtn">Започни →</button>
+          </div>
         </div>
       </section>
 
@@ -115,9 +125,7 @@
   </div>
 
 <script>
-/* ====== GOOGLE SHEETS WEB APP URL ====== */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbw_mannm2Ur9ZolrFy57A9Y2y3mEf5TwUKc28LRsDmBHGIbu8hTWwDBCYqqodmp8Hmk/exec";
-/* ======================================= */
 
 let step = 0;
 const answers = { utm_source: new URLSearchParams(location.search).get('utm_source')||'' };
@@ -131,7 +139,6 @@ const backBtn = document.getElementById('backBtn');
 const nextBtn = document.getElementById('nextBtn');
 const progressBar = document.getElementById('progressBar');
 
-/* Steps (no icons) */
 const steps = [
   { key:'home_type', title:'Каков дом имаш?', render: () => cardGrid([
     'Куќа','Двокатна куќа','Стан','Друго'
@@ -222,14 +229,12 @@ function scrollToEl(el){
 }
 
 function validatePhoneOptional(value){
-  if (!value) return true; // optional
-  // Accept +389 7x xxx xxx or 07x xxx xxx (common MK mobiles, flexible spaces)
+  if (!value) return true;
   const re = /^(?:\+389\s?7\d\s?\d{3}\s?\d{3}|0?7\d\s?\d{3}\s?\d{3})$/;
   return re.test(value.trim());
 }
 
 function validateEmail(value){
-  // Rely on type=email + a conservative regex fallback
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   return re.test(value.trim());
 }
@@ -277,70 +282,4 @@ function validateStep(){
       scrollToEl(bad);
       return false;
     }
-    answers.contact = {name:name.value.trim(), phone:phone.value.trim(), email:email.value.trim()};
-    return true;
-  }
-
-  return true;
-}
-
-async function submitForm(){
-  nextBtn.disabled = true;
-  nextBtn.textContent = 'Се испраќа…';
-  try {
-    const payload = {
-      timestamp: new Date().toISOString(),
-      home_type: answers.home_type||'',
-      size: answers.size||'',
-      current_heating: answers.current_heating||'',
-      timeline: answers.timeline||'',
-      financing: answers.financing||'',
-      address: answers.address?.addr||'',
-      city: answers.address?.city||'',
-      zip: answers.address?.zip||'',
-      name: answers.contact?.name||'',
-      phone: answers.contact?.phone||'',
-      email: answers.contact?.email||'',
-      user_agent: navigator.userAgent,
-      referrer: document.referrer,
-    };
-
-    if(!GAS_URL || GAS_URL.startsWith('REPLACE_')) throw new Error('Missing Google Apps Script URL');
-
-    // text/plain: simpler, avoids CORS preflight
-    const res = await fetch(GAS_URL, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
-    });
-
-    if(!res.ok) throw new Error('Bad response');
-    showSuccess();
-  } catch(e) {
-    alert('Настана грешка при испраќањето. Ве молиме обидете се повторно.');
-    nextBtn.disabled = false;
-    nextBtn.textContent = 'следно';
-  }
-}
-
-function showSuccess(){
-  quiz.classList.add('hidden');
-  success.classList.remove('hidden');
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-startBtn?.addEventListener('click', ()=>{
-  welcome.classList.add('hidden');
-  quiz.classList.remove('hidden');
-  step = 0;
-  render();
-});
-backBtn.addEventListener('click', ()=>{ if(step>0){ step--; render(); } });
-nextBtn.addEventListener('click', ()=>{
-  if(!validateStep()) return;
-  if(step < steps.length-1) { step++; render(); }
-  else submitForm();
-});
-</script>
-</body>
-</html>
+    answers.contact = {name:name.value.trim(), phone:phone.value.trim(), email
