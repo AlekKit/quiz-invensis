@@ -40,6 +40,14 @@
   .welcome .overlay .overlay-card .lead{margin:0 0 16px; font-size:clamp(14px,3.8vw,18px)}
   .welcome > .content{display:none}
 
+  /* Mobile fix: make hero tall enough so the card never gets clipped */
+  @media (max-width:560px){
+    .welcome{ min-height:88vh; }
+    .welcome .hero-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .welcome .overlay{ position:absolute; inset:0; display:grid; place-items:center; padding:16px; }
+    .welcome .overlay .overlay-card{ width:min(94%, 640px); padding:18px; }
+  }
+
   /* Buttons */
   .btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer;transition:transform .05s ease;box-shadow:0 6px 16px rgba(226,35,26,.3);text-decoration:none}
   .btn:active{transform:translateY(1px)}
@@ -242,7 +250,7 @@ function scrollToEl(el){
 function validatePhoneOptional(value){
   if (!value) return true; // optional
   // Accept +389 7x xxx xxx or 07x xxx xxx (common MK mobiles, flexible spaces)
-  const re = /^(?:\+389\s?7\d\s?\d{3}\s?\d{3}|0?7\d\s?\d{3}\s?\d{3})$/;
+  const re = /^(?:\+389\s?7\d\s?\d{3}\s?\d{3}|0?7\d\s?\d{3}\s?\д{3})$/;
   return re.test(value.trim());
 }
 
